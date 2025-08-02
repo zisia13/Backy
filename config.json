@@ -1,5 +1,6 @@
 {
-    "mode" : "",
+    "mode" : "onetime",
+    "loop_interval" : 5,
     "path1" : "",
     "path2" : ""
 }
