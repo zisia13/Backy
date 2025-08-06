@@ -3,6 +3,9 @@ from typing import List, Union, TypeAlias
 from colors import Colors
 from exec_path import get_execution_path
 
+#text "mode" options: sync, transfer
+#text "repeat" options: loop, onetime
+
 #! create objects
 c_colors = Colors()
 exec_path: str = get_execution_path()
@@ -27,12 +30,15 @@ def copy_from_to(from_path: str, to_path: str) -> None:
 JSON_SETTINGS = get_config_data()
 
 MODE: str = JSON_SETTINGS["mode"]
+REPEAT: str = JSON_SETTINGS["repeat"]
 LOOP_INTERVAL: int = JSON_SETTINGS["loop_interval"]
 PATH_1: str = JSON_SETTINGS["path1"]
 PATH_2: str = JSON_SETTINGS["path2"]
 
 #! check settings
-if MODE not in ["onetime", "loop"]:
+if MODE not in ["sync", "transfer"]:
+    exit_all("ERROR: Repeat in config file should be: sync or transfer")
+if REPEAT not in ["onetime", "loop"]:
     exit_all("ERROR: Mode in config file should be: onetime or loop")
 if type(LOOP_INTERVAL) != int:
     exit_all("ERROR: Loop Interval must be a int number")
@@ -42,7 +48,7 @@ if not os.path.exists(PATH_2):
     exit_all("ERROR: Path2 doesnt exist")
 
 #! def main function
-def compare(p1: str, p2: str, verbose: bool = False) -> None:
+def sync(p1: str, p2: str, verbose: bool = False) -> None:
     
     #! get all files in paths
     p1_items = set(os.listdir(p1))
@@ -65,16 +71,32 @@ def compare(p1: str, p2: str, verbose: bool = False) -> None:
             if verbose:
                 c_colors.c_print(c_colors.YELLOW, f"Copied file: {item}")
 
-
+def transfer(p1: str, p2: str):
+    for file in os.listdir(p1):
+        file_path = os.path.join(p1, file)
+        copy_from_to(file_path, p2)
+        try:
+            os.remove(file_path)
+        except PermissionError:
+            print(c_colors.RED + f"No permission for file: {file}" + c_colors.WHITE)
 
 #! start (select mode)
-if MODE == "onetime":
-    compare(p1 = PATH_1, p2 = PATH_2)
-    compare(p1 = PATH_2, p2 = PATH_1)
+if REPEAT == "onetime":
+    if MODE == "sync":
+        sync(p1 = PATH_1, p2 = PATH_2)
+        sync(p1 = PATH_2, p2 = PATH_1)
+        
+    elif MODE == "transfer":
+        transfer(p1 = PATH_1, p2 = PATH_2)
+
     c_colors.c_print(c_colors.GREEN, "Finished, Exit...")
 
-elif MODE == "loop":
+elif REPEAT == "loop":
     while True:
-        compare(p1 = PATH_1, p2 = PATH_2)
-        compare(p1 = PATH_2, p2 = PATH_1)
-        time.sleep(LOOP_INTERVAL)
+        if MODE == "sync":
+            sync(p1 = PATH_1, p2 = PATH_2)
+            sync(p1 = PATH_2, p2 = PATH_1)
+            time.sleep(LOOP_INTERVAL)
+            
+        elif MODE == "transfer":
+            transfer(p1 = PATH_1, p2 = PATH_2)
