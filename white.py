@@ -47,6 +47,41 @@ if not os.path.exists(PATH_1):
 if not os.path.exists(PATH_2):
     exit_all("ERROR: Path2 doesnt exist")
 
+def get_path_size(p: str) -> bool:
+    return len(os.listdir(p))
+
+class Progress_Bar:
+    item_counter: int = 0
+    sum_items: int = None
+    all_items: list = []
+
+    @classmethod
+    def init(cls, items: list) -> None:
+        cls.all_items = items
+        cls.sum_items = len(items)
+        cls.write(str(cls.all_items[cls.item_counter]))
+        return None
+
+    @classmethod
+    def write(cls, text: str) -> None:
+        sys.stdout.write('\r' + text)
+        sys.stdout.flush()
+        return None
+
+    @classmethod
+    def next(cls) -> None:
+        cls.write(str(cls.all_items[cls.item_counter]))
+        cls.item_counter += 1
+        time.sleep(1)
+        return None
+    
+    @classmethod
+    def reset(cls) -> None:
+        cls.item_counter = 0
+        cls.sum_items = None
+        cls.all_items = []
+        return None
+
 #! def main function
 def sync(p1: str, p2: str, verbose: bool = False) -> None:
     
@@ -72,9 +107,14 @@ def sync(p1: str, p2: str, verbose: bool = False) -> None:
                 c_colors.c_print(c_colors.YELLOW, f"Copied file: {item}")
 
 def transfer(p1: str, p2: str):
+    
+    Progress_Bar.init(os.listdir(p1))
+
     for file in os.listdir(p1):
+
         file_path = os.path.join(p1, file)
         copy_from_to(file_path, p2)
+        Progress_Bar.next()
         try:
             os.remove(file_path)
         except PermissionError:
