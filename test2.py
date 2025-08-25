@@ -10,7 +10,7 @@ def get_everything_in_folder(device_name):
     
     try:
         # Shell initialisieren
-        pythoncom.CoInitialize()
+        #pythoncom.CoInitialize()
         shell = Dispatch("Shell.Application")
         namespace = shell.NameSpace(17)  # 17 = ssfDRIVES = Dieser PC
         
