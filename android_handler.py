@@ -195,6 +195,8 @@ class Android_Handler:
             c_colors.c_print(c_colors.RED, "ERROR: Multiple Phones found... (select feature will come later)")
         elif device_names[0] == cls.NOT_FOUND:
             c_colors.c_print(c_colors.RED, "No Phone Found!")
+            time.sleep(10)
+            sys.exit(1)
         else:
             selected_phone = device_names[0]
             print(c_colors.WHITE + "Phone Found: " + c_colors.PURPLE + selected_phone + c_colors._reset)
