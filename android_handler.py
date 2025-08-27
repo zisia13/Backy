@@ -1,6 +1,6 @@
 from win32com.client import Dispatch
 import psutil, shutil
-from typing import List, TypeAlias, Optional
+from typing import List, TypeAlias, Optional, Tuple
 import pythoncom
 import win32clipboard
 import os, sys, time
@@ -85,7 +85,7 @@ class Android_Handler:
             return False
         
     @classmethod
-    def delete_shell_item(cls, device_name: str, wanted_folder_name: str, media_name) -> None:
+    def delete_shell_item(cls, device_name: str, wanted_folder_name: str) -> bool:
         pythoncom.CoInitialize()
         shell = Dispatch("Shell.Application")
         namespace = shell.NameSpace(17)
@@ -99,36 +99,31 @@ class Android_Handler:
                         if storage_file.Name == "DCIM":
                             dcim_folder = storage_file.GetFolder
                             for sub_folder in dcim_folder.Items():
-                                media_folder = sub_folder.GetFolder
-                                if sub_folder.Name == wanted_folder_name:
-                                    for media in media_folder.Items():
-                                        if not media.IsFolder: #! folder only
-                                            if str(str(media.Name)) == str(media_name):
+                                if str(sub_folder.Name) == str(wanted_folder_name):
+                                    try:
+                                        sub_folder.InvokeVerb("delete")
+                                        return True
+                                    except:
+                                        return False
 
-                                                parent_folder = media.Parent
-                                                if parent_folder:
-                                                    parent_folder.GetFolder.ParseName(media.Name).InvokeVerb("delete")
-                                                #todo finish here
-                                                #media.GetFolder.ParseName(media.Name).InvokeVerb("delete")
+    @classmethod
+    def check_if_media_folder_exists(cls, device_name: str, wanted_folder_name: str) -> bool:
+        pythoncom.CoInitialize()
+        shell = Dispatch("Shell.Application")
+        namespace = shell.NameSpace(17)
 
-                                                #media.Delete()
-                                                #media.InvokeVerb("Delete")
-                                                print(c_colors.GREEN + "SUCCESS: MEDIA DELETED" + c_colors._reset)
-                                                time.sleep(1)
-                                            else:
-                                                print("")
-                                                print(f"Media: {media.Name} not found...")
-                                                print(f"media.Name: {media.Name}, type: {type(media.Name)}")
-                                                print(f"media_name: {media_name}, type: {type(media_name)}")
-
-                                else:
-                                    continue
-                        else:
-                            continue
-            else:
-                continue
-
-        return None   
+        for item in namespace.Items():
+            if item.Name == device_name:
+                device_folder = item.GetFolder
+                for storage_item in device_folder.Items():
+                    storage_folder = storage_item.GetFolder
+                    for storage_file in storage_folder.Items():
+                        if storage_file.Name == "DCIM":
+                            dcim_folder = storage_file.GetFolder
+                            if wanted_folder_name in dcim_folder.Items():
+                                return True
+                            else:
+                                return False
 
     @classmethod
     def clear_clipboard(cls) -> IGNORABLE:
@@ -198,8 +193,9 @@ class Android_Handler:
             
         sys.stdout.write(f'\r[{balken}] {current}/{total} {percent*100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
         sys.stdout.flush()
-        time.sleep(0.1)
+        time.sleep(0.008)
 
+    #! wtf is this cancer just delete it or something
     #todo FINISH THIS METHOD
     @classmethod
     def end_progress_bar(cls, current: str, current_name: str, total: int, width: int, longest_name: int) -> None:
@@ -247,8 +243,6 @@ class Android_Handler:
             selected_phone = device_names[0]
             print(c_colors.WHITE + "Phone Found: " + c_colors.PURPLE + selected_phone + c_colors._reset)
 
-        #todo cls.clear_clipboard()
-
         #! get medias in folders
         all_medias = []
 
@@ -267,35 +261,48 @@ class Android_Handler:
                 longest_media_name = len(name)
 
         #! copy medias
-        media_counter = 0
+        copied_medias = 0
         
         for media in all_medias:
-            #cls.copy_shell_item(
-            #    phone_file = media, 
-            #    destination_path = cls.create_media_destination_path(media = media)
-            #)
-            #cls.clear_clipboard()
+            cls.copy_shell_item(
+                phone_file = media, 
+                destination_path = cls.create_media_destination_path(media = media)
+            )
+            cls.clear_clipboard()
 
-            media_counter += 1        
+            copied_medias += 1        
             cls.progress_bar(
                 total = len(all_medias),
-                current = media_counter,
+                current = copied_medias,
                 current_name = media,
                 width = 30,
                 longest_name = longest_media_name
             )
 
-        print("\nRemoving Medias on Phone...")
-        for media in all_medias:
-            print(media)
-            #* media: Screenshot_20250824_131728_TikTok.jpg
-            #* wanted folder name: Screenshots/Camera
-            #* device name: S24 Ultra con zisia13
+        #! remove folders
+        if len(all_medias) == copied_medias:
+            print("\nRemoving Folders on Phone...")
             for folder in cls.DCIM_FOLDER_NAMES:
-                cls.delete_shell_item(device_name = selected_phone, wanted_folder_name = folder, media_name = media)
+                cls.delete_shell_item(device_name = selected_phone, wanted_folder_name = folder)
+        else:
+            print("\nNo folder will be removed...")
+            print(f"all medias: {len(all_medias)}")
+            print(f"copied medias: {copied_medias}")
+            print(c_colors._reset)
+
+        #! show removed folders
+        for folder in cls.DCIM_FOLDER_NAMES:
+            if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
+                print(c_colors.GREEN + "Removed folder: " + folder + c_colors._reset)
+            else:
+                print(c_colors.RED + "Not removed folder: " + folder + c_colors._reset)
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
+
+        #! end software
+        time.sleep(20)
+        sys.exit(1)
 
 if __name__ == "__main__":
     Android_Handler.run()
