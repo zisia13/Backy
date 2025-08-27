@@ -293,9 +293,9 @@ class Android_Handler:
         #! show removed folders
         for folder in cls.DCIM_FOLDER_NAMES:
             if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
-                print(c_colors.GREEN + "Removed folder: " + folder + c_colors._reset)
+                print(c_colors.GREEN + "Removed folder: " + c_colors.WHITE + folder + c_colors._reset)
             else:
-                print(c_colors.RED + "Not removed folder: " + folder + c_colors._reset)
+                print(c_colors.RED + "Not removed folder: " + c_colors.WHITE + folder + c_colors._reset)
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
