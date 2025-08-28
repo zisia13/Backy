@@ -14,8 +14,8 @@ c_colors = Colors()
 class Android_Handler:
 
     NOT_FOUND = "no_phone_found"
-    PROGRESSBAR_ASCII_COMPLETE = c_colors.GREEN + "-" + c_colors._reset #"█"
-    PROGRESSBAR_ASCII_FINISHED = c_colors.RED + "-" + c_colors._reset
+    PROGRESSBAR_ASCII_COMPLETE = c_colors.GREEN + "━" + c_colors._reset #"█"
+    PROGRESSBAR_ASCII_FINISHED = c_colors.RED + "━" + c_colors._reset
 
     identifier_list = [
         "Android",
@@ -31,7 +31,9 @@ class Android_Handler:
         "Camera"
     ]
 
-    PC_SAVE_PATH = r"C:\Users\AGL\Downloads\phone_media_folder_pc"
+    login_name = os.getlogin()
+
+    PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc"
 
     def __init__(self):
         print(f"This class '{Android_Handler.__name__}' is not intended for an object, please use the classmethods...")
