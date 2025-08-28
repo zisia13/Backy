@@ -190,10 +190,10 @@ class Android_Handler:
 
         i = total - (total - current)
         percent = i / total
-        ausgefuellt = int(width * percent)
-        balken = cls.PROGRESSBAR_ASCII_COMPLETE * ausgefuellt + cls.PROGRESSBAR_ASCII_FINISHED * (width - ausgefuellt)
+        filled = int(width * percent)
+        bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
             
-        sys.stdout.write(f'\r[{balken}] {current}/{total} {percent*100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
+        sys.stdout.write(f'\r[{bar}] {current}/{total} {percent*100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
         sys.stdout.flush()
         time.sleep(0.008)
 
