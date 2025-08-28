@@ -245,6 +245,12 @@ class Android_Handler:
             selected_phone = device_names[0]
             print(c_colors.WHITE + "Phone Found: " + c_colors.PURPLE + selected_phone + c_colors._reset)
 
+        #! check how many folders exist on phone
+        existing_folders_before = []
+        for folder in cls.DCIM_FOLDER_NAMES:
+            if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
+                existing_folders_before.append(folder)
+
         #! get medias in folders
         all_medias = []
 
@@ -293,11 +299,11 @@ class Android_Handler:
             print(c_colors._reset)
 
         #! show removed folders
-        for folder in cls.DCIM_FOLDER_NAMES:
+        for folder in existing_folders_before:
             if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
-                print(c_colors.GREEN + "Removed folder: " + c_colors.WHITE + folder + c_colors._reset)
+                print(c_colors.WHITE + "Still here: " + c_colors.GREEN + folder + c_colors._reset) #todo !
             else:
-                print(c_colors.RED + "Not removed folder: " + c_colors.WHITE + folder + c_colors._reset)
+                print(c_colors.WHITE + "Deleted: " + c_colors.RED + folder + c_colors._reset) #todo !
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
