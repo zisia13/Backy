@@ -21,6 +21,9 @@ class Colors:
         self.LIME = self.b(0, 255, 0)
         self.OLIVE = self.b(128, 128, 0)
         self.NAVY = self.b(0, 0, 128)
+
+        self.PASTELL_GREEN = self.b(144, 238, 144)
+        self.PASTELL_RED = self.b(255, 114, 118)
         
         self._reset = self.b(255, 255, 255)
     

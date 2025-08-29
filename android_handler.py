@@ -14,8 +14,8 @@ c_colors = Colors()
 class Android_Handler:
 
     NOT_FOUND = "no_phone_found"
-    PROGRESSBAR_ASCII_COMPLETE = c_colors.GREEN + "━" + c_colors._reset #"█"
-    PROGRESSBAR_ASCII_FINISHED = c_colors.RED + "━" + c_colors._reset
+    PROGRESSBAR_ASCII_COMPLETE = c_colors.PASTELL_GREEN + "━" + c_colors._reset #"█"
+    PROGRESSBAR_ASCII_FINISHED = c_colors.PASTELL_RED + "━" + c_colors._reset
 
     identifier_list = [
         "Android",
@@ -33,7 +33,7 @@ class Android_Handler:
 
     login_name = os.getlogin()
 
-    PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc"
+    PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc" #todo change this path !
 
     def __init__(self):
         print(f"This class '{Android_Handler.__name__}' is not intended for an object, please use the classmethods...")
@@ -191,11 +191,16 @@ class Android_Handler:
         i = total - (total - current)
         percent = i / total
         filled = int(width * percent)
-        bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
+        if int(current) == int(total):
+            space = ""
+        else:
+            space = " "
+
+        bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + space + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
             
         sys.stdout.write(f'\r[{bar}] {current}/{total} {percent*100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
         sys.stdout.flush()
-        time.sleep(0.008)
+        time.sleep(0.01)
 
     #! wtf is this cancer just delete it or something
     #todo FINISH THIS METHOD
