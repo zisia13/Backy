@@ -31,9 +31,7 @@ class Android_Handler:
         "Camera"
     ]
 
-    login_name = os.getlogin()
-
-    PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc" #todo change this path !
+    PC_SAVE_PATH = ""
 
     def __init__(self):
         print(f"This class '{Android_Handler.__name__}' is not intended for an object, please use the classmethods...")
@@ -107,6 +105,27 @@ class Android_Handler:
                                         return True
                                     except:
                                         return False
+
+    @classmethod
+    def get_existing_folders_in_DCIM_folder(cls, device_name: str) -> List[str]:
+        pythoncom.CoInitialize()
+        shell = Dispatch("Shell.Application")
+        namespace = shell.NameSpace(17)
+
+        DCIM_folders = []
+
+        for item in namespace.Items():
+            if item.Name == device_name:
+                device_folder = item.GetFolder
+                for storage_item in device_folder.Items():
+                    storage_folder = storage_item.GetFolder
+                    for storage_file in storage_folder.Items():
+                        if storage_file.Name == "DCIM":
+                            dcim_folder = storage_file.GetFolder
+                            for folder in dcim_folder.Items():
+                                DCIM_folders.append(str(folder))
+
+        return DCIM_folders    
 
     @classmethod
     def check_if_media_folder_exists(cls, device_name: str, wanted_folder_name: str) -> bool:
@@ -198,7 +217,7 @@ class Android_Handler:
 
         bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + space + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
             
-        sys.stdout.write(f'\r[{bar}] {current}/{total} {percent*100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
+        sys.stdout.write(f'\r[{bar}] {current}/{total} {percent * 100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
         sys.stdout.flush()
         time.sleep(0.01)
 
@@ -251,10 +270,10 @@ class Android_Handler:
             print(c_colors.WHITE + "Phone Found: " + c_colors.PURPLE + selected_phone + c_colors._reset)
 
         #! check how many folders exist on phone
-        existing_folders_before = []
-        for folder in cls.DCIM_FOLDER_NAMES:
-            if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
-                existing_folders_before.append(folder)
+        existing_folders_before = cls.get_existing_folders_in_DCIM_folder(device_name = selected_phone)
+        #for folder in cls.DCIM_FOLDER_NAMES:
+        #    if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
+        #        existing_folders_before.append(folder)
 
         #! get medias in folders
         all_medias = []
@@ -294,28 +313,39 @@ class Android_Handler:
 
         #! remove folders
         if len(all_medias) == copied_medias:
-            print("\nRemoving Folders on Phone...")
+            print("\nPlease confirm the request for folder deletion...")
             for folder in cls.DCIM_FOLDER_NAMES:
                 cls.delete_shell_item(device_name = selected_phone, wanted_folder_name = folder)
         else:
-            print("\nNo folder will be removed...")
-            print(f"all medias: {len(all_medias)}")
-            print(f"copied medias: {copied_medias}")
+            print("\nNo folder will be removed because of an internal error...")
+            print(f"All Medias: {len(all_medias)}")
+            print(f"Copied medias: {copied_medias}")
             print(c_colors._reset)
 
-        #! show removed folders
+        #! get removed folders
+        removed_folders = []
+        for folder in cls.DCIM_FOLDER_NAMES:
+            if not cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
+                removed_folders.append(folder)
+        
+        #! print removed and existing folders
+        removed_folders_string = ""
+        remaining_folders_string = ""
+
+        for folder in removed_folders:
+            removed_folders_string += folder + " "
+
         for folder in existing_folders_before:
-            if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
-                print(c_colors.WHITE + "Still here: " + c_colors.GREEN + folder + c_colors._reset) #todo !
-            else:
-                print(c_colors.WHITE + "Deleted: " + c_colors.RED + folder + c_colors._reset) #todo !
+            if not folder in removed_folders:
+                remaining_folders_string += folder + ""
+
+        print(f"{c_colors.WHITE}Removed Folders: {c_colors.PURPLE}{removed_folders_string}{c_colors._reset}")
+        print(f"{c_colors.WHITE}Remaining Folders: {c_colors.PURPLE}{remaining_folders_string}{c_colors._reset}")
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
 
-        #! end software
-        time.sleep(20)
-        sys.exit(1)
-
 if __name__ == "__main__":
+    login_name = os.getlogin()
+    Android_Handler.PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc"
     Android_Handler.run()
