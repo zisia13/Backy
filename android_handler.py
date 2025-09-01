@@ -4,6 +4,7 @@ from typing import List, TypeAlias, Optional, Tuple
 import pythoncom
 import win32clipboard
 import os, sys, time
+from datetime import datetime
 
 from colors import Colors
 
@@ -345,7 +346,40 @@ class Android_Handler:
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
 
+class Time_Handler:
+
+    @classmethod
+    def get_date(cls) -> str:
+        now = datetime.now()
+        date = now.strftime("%d_%m_%y")
+        return date
+
+    @classmethod
+    def get_time(cls) -> str:
+        now = datetime.now()
+        time = now.strftime("%H_%M_%S")
+        return time
+
 if __name__ == "__main__":
+
     login_name = os.getlogin()
-    Android_Handler.PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc"
-    Android_Handler.run()
+
+    if login_name == "zisia13":
+        _date = Time_Handler.get_date()
+        _time = Time_Handler.get_time()
+        folder_name = "D_" + _date + "___" + _time
+
+        base_path = rf"A:\Backup\Handy Bilder\S24 Ultra\WHITE_AUTOBACKUP_MEDIA"
+        folder_path = os.path.join(base_path, folder_name)
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        Android_Handler.PC_SAVE_PATH = folder_path
+        Android_Handler.run()
+        sys.exit(1)
+
+    else:
+        Android_Handler.PC_SAVE_PATH = rf"C:\Users\{login_name}\Downloads\phone_media_folder_pc"
+        Android_Handler.run()
+        sys.exit(1)
