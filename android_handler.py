@@ -297,13 +297,16 @@ class Android_Handler:
         copied_medias = 0
         
         for media in all_medias:
-            cls.copy_shell_item(
-                phone_file = media, 
-                destination_path = cls.create_media_destination_path(media = media)
-            )
-            cls.clear_clipboard()
+            try:
+                cls.copy_shell_item( #todo add security feature here check return value
+                    phone_file = media, 
+                    destination_path = cls.create_media_destination_path(media = media)
+                )
+                cls.clear_clipboard()
+                copied_medias += 1 #todo add security feature here
+            except:
+                pass
 
-            copied_medias += 1        
             cls.progress_bar(
                 total = len(all_medias),
                 current = copied_medias,
