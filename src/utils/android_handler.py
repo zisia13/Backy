@@ -6,17 +6,17 @@ import win32clipboard
 import os, sys, time
 from datetime import datetime
 
-from colors import Colors
-
 IGNORABLE: TypeAlias = Optional[bool]
-
-c_colors = Colors()
 
 class Android_Handler:
 
+    PC_SAVE_PATH = None
+    c_colors = None
+    theme_color = None
+    PROGRESSBAR_ASCII_COMPLETE = None
+    PROGRESSBAR_ASCII_FINISHED = None
+
     NOT_FOUND = "no_phone_found"
-    PROGRESSBAR_ASCII_COMPLETE = c_colors.PASTELL_GREEN + "━" + c_colors._reset #"█"
-    PROGRESSBAR_ASCII_FINISHED = c_colors.PASTELL_RED + "━" + c_colors._reset
 
     identifier_list = [
         "Android",
@@ -32,11 +32,17 @@ class Android_Handler:
         "Camera"
     ]
 
-    PC_SAVE_PATH = ""
-
     def __init__(self):
         print(f"This class '{Android_Handler.__name__}' is not intended for an object, please use the classmethods...")
         raise SyntaxError()
+
+    @classmethod
+    def init(cls, colors_obj, pc_save_path):
+        cls.PC_SAVE_PATH = pc_save_path
+        cls.c_colors = colors_obj
+        cls.PROGRESSBAR_ASCII_COMPLETE = cls.c_colors.PASTELL_GREEN + "━" + cls.c_colors._reset #"█"
+        cls.PROGRESSBAR_ASCII_FINISHED = cls.c_colors.PASTELL_RED + "━" + cls.c_colors._reset
+        cls.theme_color = cls.c_colors.ORANGE
 
     @classmethod
     def get_pc_drives(cls) -> List[str]:
@@ -180,14 +186,7 @@ class Android_Handler:
                                         if not media.IsFolder: #! folder only
                                             media_list.append(media)
                                         else:
-                                            c_colors.c_print(c_colors.YELLOW, f"INFO: Folder: {media.Name} found in {sub_folder.Name}")
-                                else:
-                                    continue
-                        else:
-                            continue
-            else:
-                continue
-
+                                            cls.c_colors.c_print(cls.c_colors.YELLOW, f"INFO: Folder: {media.Name} found in {sub_folder.Name}")
         return media_list    
                                     
     @classmethod
@@ -218,7 +217,7 @@ class Android_Handler:
 
         bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + space + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
             
-        sys.stdout.write(f'\r[{bar}] {current}/{total} {percent * 100:.1f}% File: {c_colors.PURPLE}{current_name}{c_colors._reset}')
+        sys.stdout.write(f'\r[{bar}] {current}/{total} {percent * 100:.1f}% File: {cls.theme_color}{current_name}{cls.c_colors._reset}')
         sys.stdout.flush()
         time.sleep(0.01)
 
@@ -261,14 +260,14 @@ class Android_Handler:
         #! get device name
         device_names, phone_paths = cls.scan_for_phones()
         if len(device_names) > 1:
-            c_colors.c_print(c_colors.RED, "ERROR: Multiple Phones found... (select feature will come later)")
+            cls.c_colors.c_print(cls.c_colors.RED, "ERROR: Multiple Phones found... (select feature will come later)")
         elif device_names[0] == cls.NOT_FOUND:
-            c_colors.c_print(c_colors.RED, "No Phone Found!")
+            cls.c_colors.c_print(cls.c_colors.RED, "No Phone Found!")
             time.sleep(10)
             sys.exit(1)
         else:
             selected_phone = device_names[0]
-            print(c_colors.WHITE + "Phone Found: " + c_colors.PURPLE + selected_phone + c_colors._reset)
+            print(cls.c_colors.WHITE + "Phone Found: " + cls.theme_color + selected_phone + cls.c_colors._reset)
 
         #! check how many folders exist on phone
         existing_folders_before = cls.get_existing_folders_in_DCIM_folder(device_name = selected_phone)
@@ -282,7 +281,7 @@ class Android_Handler:
         for folder in cls.DCIM_FOLDER_NAMES:
             medias = cls.get_DCIM_folder_content(device_name = selected_phone, wanted_folder_name = folder)
             amount_of_medias = int(len(medias))
-            print(c_colors.WHITE + f"Medias in {folder}: " + c_colors.PURPLE + str(amount_of_medias) + c_colors._reset)
+            print(cls.c_colors.WHITE + f"Medias in {folder}: " + cls.theme_color + str(amount_of_medias) + cls.c_colors._reset)
             for media in medias:
                 all_medias.append(media)
 
@@ -323,27 +322,27 @@ class Android_Handler:
             print("\nNo folder will be removed because of an internal error...")
             print(f"All Medias: {len(all_medias)}")
             print(f"Copied medias: {copied_medias}")
-            print(c_colors._reset)
+            print(cls.c_colors._reset)
 
         #! get removed folders
         removed_folders = []
-        for folder in cls.DCIM_FOLDER_NAMES:
+        for folder in cls.DCIM_FOLDER_NAMES: 
             if not cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
                 removed_folders.append(folder)
         
         #! print removed and existing folders
         removed_folders_string = ""
-        remaining_folders_string = ""
+        #// remaining_folders_string = ""
 
         for folder in removed_folders:
             removed_folders_string += folder + " "
 
-        for folder in existing_folders_before:
-            if not folder in removed_folders:
-                remaining_folders_string += folder + ""
+        #// for folder in existing_folders_before:
+        #//     if not folder in removed_folders:
+        #//         remaining_folders_string += folder + ""
 
-        print(f"{c_colors.WHITE}Removed Folders: {c_colors.PURPLE}{removed_folders_string}{c_colors._reset}")
-        print(f"{c_colors.WHITE}Remaining Folders: {c_colors.PURPLE}{remaining_folders_string}{c_colors._reset}")
+        print(f"{cls.c_colors.WHITE}Removed Folders: {cls.theme_color}{removed_folders_string}{cls.c_colors._reset}")
+        #// print(f"{cls.c_colors.WHITE}Remaining Folders: {cls.theme_color}{remaining_folders_string}{cls.c_colors._reset}")
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
@@ -361,7 +360,8 @@ class Time_Handler:
         now = datetime.now()
         time = now.strftime("%H_%M_%S")
         return time
-
+    
+#! this part will not work anymore because colors class is not set and imported
 if __name__ == "__main__":
 
     login_name = os.getlogin()

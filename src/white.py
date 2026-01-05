@@ -1,17 +1,21 @@
 import os, sys, time, json, shutil
 from typing import List, Union, TypeAlias
+
 from colors import Colors
-from exec_path import get_execution_path
+from utils import Android_Handler, get_execution_path
 
 #text "mode" options: sync, transfer
 #text "repeat" options: loop, onetime
+
+#! init ansii
+os.system("")
 
 #! create objects
 c_colors = Colors()
 exec_path: str = get_execution_path()
 
 #! def functions
-def exit_all(t:str = ""):
+def exit_all(t: str = ""):
     c_colors.c_print(c_colors.RED, t)
     time.sleep(10)
     sys.exit(1)
