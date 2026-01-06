@@ -5,6 +5,7 @@ import pythoncom
 import win32clipboard
 import os, sys, time
 from datetime import datetime
+import asyncio
 
 try: from hash import get_file_hash
 except: from .hash import get_file_hash
@@ -41,7 +42,8 @@ class Android_Handler:
         raise SyntaxError()
 
     @classmethod
-    def init(cls, colors_obj, pc_save_path: str, database):
+    def init(cls, colors_obj, pc_save_path: str, database, DCIM_folder_names: List[str]):
+        cls.DCIM_FOLDER_NAMES = DCIM_folder_names
         cls.db = database
         cls.PC_SAVE_PATH = pc_save_path
         cls.c_colors = colors_obj
@@ -153,10 +155,14 @@ class Android_Handler:
                     for storage_file in storage_folder.Items():
                         if storage_file.Name == "DCIM":
                             dcim_folder = storage_file.GetFolder
-                            if wanted_folder_name in dcim_folder.Items():
-                                return True
-                            else:
-                                return False
+                            for item in dcim_folder.Items():
+                                if str(item.Name) == wanted_folder_name:
+                                    return True
+                            return False
+                            #if wanted_folder_name in dcim_folder.Items(): #todo will not work bc obj is not a sting so perma false as return (maybe convert to string or change for loop)
+                            #    return True
+                            #else:
+                            #    return False
 
     @classmethod
     def clear_clipboard(cls) -> IGNORABLE:
@@ -259,9 +265,6 @@ class Android_Handler:
         #! hide cli cursor
         Android_Handler.hide_CLI_cursor()
 
-        #! init CLI color system
-        os.system("") 
-
         #! get device name
         device_names, phone_paths = cls.scan_for_phones()
         if len(device_names) > 1:
@@ -275,20 +278,22 @@ class Android_Handler:
             print(cls.c_colors.WHITE + "Phone Found: " + cls.theme_color + selected_phone + cls.c_colors._reset)
 
         #! check how many folders exist on phone
-        existing_folders_before = cls.get_existing_folders_in_DCIM_folder(device_name = selected_phone)
+        #? existing_folders_before = cls.get_existing_folders_in_DCIM_folder(device_name = selected_phone)
         #for folder in cls.DCIM_FOLDER_NAMES:
         #    if cls.check_if_media_folder_exists(device_name = selected_phone, wanted_folder_name = folder):
         #        existing_folders_before.append(folder)
 
         #! get medias in folders
         all_medias = []
-
         for folder in cls.DCIM_FOLDER_NAMES:
-            medias = cls.get_DCIM_folder_content(device_name = selected_phone, wanted_folder_name = folder)
-            amount_of_medias = int(len(medias))
-            print(cls.c_colors.WHITE + f"Medias in {folder}: " + cls.theme_color + str(amount_of_medias) + cls.c_colors._reset)
-            for media in medias:
-                all_medias.append(media)
+            if cls.check_if_media_folder_exists(selected_phone, folder):
+                medias = cls.get_DCIM_folder_content(device_name = selected_phone, wanted_folder_name = folder)
+                amount_of_medias = int(len(medias))
+                print(cls.c_colors.WHITE + f"Medias in {folder}: " + cls.theme_color + str(amount_of_medias) + cls.c_colors._reset)
+                for media in medias:
+                    all_medias.append(media)
+            #else:
+            #    print("folder doesnt exist")
 
         #! get longest string element of media
         longest_media_name = 0
@@ -313,7 +318,7 @@ class Android_Handler:
             media_hash = get_file_hash(destination_path)
 
             #! add hash to db, if hash exists, delete media on pc
-            if copy_success_state:    
+            if copy_success_state:
                 if cls.db.check(media_hash):
                     os.remove(destination_path)
                 else:
@@ -385,6 +390,9 @@ class Time_Handler:
     
 #! this part will not work anymore because colors class is not set and imported
 if __name__ == "__main__":
+
+    print("Wrong file to execute")
+    sys.exit()
 
     login_name = os.getlogin()
 

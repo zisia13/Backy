@@ -13,16 +13,18 @@ def get_execution_path() -> str:
         script_dir = os.path.dirname(os.path.abspath(__file__)) #! start from vscode
     return script_dir
 
-PC_SAVE_PATH = r"S:\_GITHUB\White\test"
-DATABASE_PATH = os.path.join(PC_SAVE_PATH, "pictures.db")
-
-#! global
+#! get config data
 config_path = os.path.join(get_execution_path(), "config.json")
 config_data = get_config(config_path)
+
+#! global vars
+PC_SAVE_PATH = config_data["DCIM_transfer"]["save_path"]
+DATABASE_PATH = os.path.join(PC_SAVE_PATH, config_data["DCIM_transfer"]["database_name"])
 
 colors = Colors()
 database = Database(DATABASE_PATH)
 
+#! start
 if __name__ == "__main__":
     
     #! init win ansii
@@ -36,6 +38,7 @@ if __name__ == "__main__":
     Android_Handler.init(
         colors_obj = colors,
         pc_save_path = PC_SAVE_PATH,
+        DCIM_folder_names = config_data["DCIM_transfer"]["folders_to_backup"],
         database = database
     )
 

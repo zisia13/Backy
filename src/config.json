@@ -1,11 +1,15 @@
 {   
-    "media_transfer_settings" : {
-        "save_path" : "",
-        "folders_to_copy" : [
-            "Screenshots",
-            "Camera"
+    "DCIM_transfer" : {
+        "save_path" : "S:\\_GITHUB\\White\\test",
+        "database_name" : "hashes.db",
+        "folders_to_backup" : [
+            "Screenshots"
         ]
     },
+
+
+
+
 
     "mode" : "transfer",
     "repeat" : "onetime",
