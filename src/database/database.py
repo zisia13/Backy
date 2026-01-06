@@ -1,8 +1,8 @@
 import sqlite3
 
 class Database:
-    def __init__(self):
-        self.connection = sqlite3.connect("pictures.db")
+    def __init__(self, db_path: str = "pictures.db"):
+        self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
 
         self.table_name = "hashes"

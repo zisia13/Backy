@@ -1,10 +1,13 @@
 from win32com.client import Dispatch
 import psutil, shutil
-from typing import List, TypeAlias, Optional, Tuple
+from typing import List, TypeAlias, Optional, Tuple, Callable
 import pythoncom
 import win32clipboard
 import os, sys, time
 from datetime import datetime
+
+try: from hash import get_file_hash
+except: from .hash import get_file_hash
 
 IGNORABLE: TypeAlias = Optional[bool]
 
@@ -15,6 +18,7 @@ class Android_Handler:
     theme_color = None
     PROGRESSBAR_ASCII_COMPLETE = None
     PROGRESSBAR_ASCII_FINISHED = None
+    db = None
 
     NOT_FOUND = "no_phone_found"
 
@@ -37,7 +41,8 @@ class Android_Handler:
         raise SyntaxError()
 
     @classmethod
-    def init(cls, colors_obj, pc_save_path):
+    def init(cls, colors_obj, pc_save_path: str, database):
+        cls.db = database
         cls.PC_SAVE_PATH = pc_save_path
         cls.c_colors = colors_obj
         cls.PROGRESSBAR_ASCII_COMPLETE = cls.c_colors.PASTELL_GREEN + "━" + cls.c_colors._reset #"█"
@@ -296,12 +301,25 @@ class Android_Handler:
         copied_medias = 0
         
         for media in all_medias:
+            #! copy media to pc
+            destination_path = cls.create_media_destination_path(media = media)
             copy_success_state = cls.copy_shell_item(
                 phone_file = media, 
-                destination_path = cls.create_media_destination_path(media = media)
+                destination_path = destination_path
             )
             cls.clear_clipboard()
 
+            #! get hash of media
+            media_hash = get_file_hash(destination_path)
+
+            #! add hash to db, if hash exists, delete media on pc
+            if copy_success_state:    
+                if cls.db.check(media_hash):
+                    os.remove(destination_path)
+                else:
+                    cls.db.save(media_hash)
+
+            #! continue with progress bar
             if copy_success_state:
                 copied_medias += 1
             
@@ -346,6 +364,10 @@ class Android_Handler:
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()
+
+        #! close database
+        try: cls.db.close()
+        except: pass
 
 class Time_Handler:
 

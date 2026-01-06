@@ -1,13 +1,27 @@
-import os
-
+import os, sys
 from banner import BANNER
 from colors import Colors
-from utils import Android_Handler, get_execution_path
+from utils import Android_Handler
+from database import Database
+from config import get_config
+
+#! get exec path
+def get_execution_path() -> str:
+    if getattr(sys, 'frozen', False): #! start from exe
+        script_dir = os.path.dirname(sys.executable)
+    else:
+        script_dir = os.path.dirname(os.path.abspath(__file__)) #! start from vscode
+    return script_dir
+
+PC_SAVE_PATH = r"S:\_GITHUB\White\test"
+DATABASE_PATH = os.path.join(PC_SAVE_PATH, "pictures.db")
 
 #! global
-exec_path = get_execution_path()
-login_name = os.getlogin()
+config_path = os.path.join(get_execution_path(), "config.json")
+config_data = get_config(config_path)
+
 colors = Colors()
+database = Database(DATABASE_PATH)
 
 if __name__ == "__main__":
     
@@ -21,10 +35,11 @@ if __name__ == "__main__":
     #! set color class to handler
     Android_Handler.init(
         colors_obj = colors,
-        pc_save_path = r"S:\_GITHUB\White\test"
+        pc_save_path = PC_SAVE_PATH,
+        database = database
     )
 
     #! run   
     Android_Handler.run()
-
-    #todo close the database connection
+    try: database.close()
+    except: pass
