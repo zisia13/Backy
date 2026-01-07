@@ -3,7 +3,7 @@ from banner import BANNER
 from colors import Colors
 from utils import Android_Handler
 from database import Database
-from config import get_config
+from config import load_config
 
 #! get exec path
 def get_execution_path() -> str:
@@ -15,7 +15,7 @@ def get_execution_path() -> str:
 
 #! get config data
 config_path = os.path.join(get_execution_path(), "config.json")
-config_data = get_config(config_path)
+config_data = load_config(config_path)
 
 #! global vars
 PC_SAVE_PATH = config_data["DCIM_transfer"]["save_path"]

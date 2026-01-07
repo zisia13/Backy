@@ -5,15 +5,5 @@
         "folders_to_backup" : [
             "Screenshots"
         ]
-    },
-
-
-
-
-
-    "mode" : "transfer",
-    "repeat" : "onetime",
-    "loop_interval" : 5,
-    "path1" : "C:/Users/zisia13/OneDrive/Desktop/p1",
-    "path2" : "C:/Users/zisia13/OneDrive/Desktop/p2"
+    }
 }

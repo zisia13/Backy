@@ -34,7 +34,3 @@ class Colors:
     @public
     def c_print(self, c, t):
         print(f"{c}{t}{self._reset}")
-
-    @public
-    def cm_print(self, c1, c2, t1, t2): #todo not working idk why
-        print(f"{c1}{t1}{c2}{t2}{self._reset}")

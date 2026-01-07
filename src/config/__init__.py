@@ -1,2 +1,2 @@
-try: from config import get_config
-except: from .config import get_config
+try: from config import load_config
+except: from .config import load_config
