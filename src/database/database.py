@@ -5,34 +5,39 @@ class Database:
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
 
-        self.table_name = "hashes"
-        self.column_name = "file_hash"
+        #! table name
+        self.table_name = "data"
+
+        #! column names
+        self.hash_column_name = "file_hash"
+        self.filename_column_name = "file_name"
 
         #! create table if it not exists
         self.cursor.execute(
             f"""
             CREATE TABLE IF NOT EXISTS {self.table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                {self.column_name} TEXT NOT NULL
+                {self.hash_column_name} TEXT,
+                {self.filename_column_name} TEXT
             )
             """
         )
         
-    def save(self, val: str) -> None:
+    def save(self, column_name: str, val: str) -> None:
         self.cursor.execute(
-            f"INSERT INTO {self.table_name} ({self.column_name}) VALUES (?)",
+            f"INSERT INTO {self.table_name} ({column_name}) VALUES (?)",
             (val,)
         )
         self.connection.commit()
     
-    def delete(self, val: str) -> None: ... #todo implement in other projects
+    def delete(self, column_name: str, val: str) -> None: ... #todo implement in other projects
         # dont forget: self.connection.commit()
         
-    def check(self, val: str) -> bool:
+    def check(self, column_name: str, val: str) -> bool:
         """
         Returns true if the value exists else false
         """
-        self.cursor.execute(f"SELECT 1 FROM {self.table_name} WHERE {self.column_name}=?", (val,))
+        self.cursor.execute(f"SELECT 1 FROM {self.table_name} WHERE {column_name}=?", (val,))
         return self.cursor.fetchone() != None
 
     def close(self) -> None:

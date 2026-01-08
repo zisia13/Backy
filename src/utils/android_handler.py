@@ -1,9 +1,10 @@
 from win32com.client import Dispatch
-import psutil
-from typing import List, TypeAlias, Optional
+import psutil, shutil
+from typing import List, TypeAlias, Optional, Tuple
 import pythoncom
 import win32clipboard
 import os, sys, time
+import tempfile
 
 try: from hash import get_file_hash
 except: from .hash import get_file_hash
@@ -44,7 +45,7 @@ class Android_Handler:
         cls.c_colors = colors_obj
         cls.PROGRESSBAR_ASCII_COMPLETE = cls.c_colors.PASTELL_GREEN + "━" + cls.c_colors._reset #"█"
         cls.PROGRESSBAR_ASCII_FINISHED = cls.c_colors.PASTELL_RED + "━" + cls.c_colors._reset
-        cls.theme_color = cls.c_colors.ORANGE
+        cls.theme_color = cls.c_colors._theme_color
 
     @classmethod
     def get_pc_drives(cls) -> List[str]:
@@ -55,7 +56,7 @@ class Android_Handler:
         return o
             
     @classmethod
-    def scan_for_phones(cls) -> List[str]:
+    def scan_for_phones(cls) -> Tuple[List[str], List[str]]:
         all_drives = cls.get_pc_drives()
         phone_names = []
         phone_paths = []
@@ -193,7 +194,7 @@ class Android_Handler:
                                     
     @classmethod
     def create_media_destination_path(cls, media) -> str:
-        return os.path.join(cls.PC_SAVE_PATH, media.Name)
+        return os.path.join(cls.PC_SAVE_PATH, media)
 
     @classmethod
     def progress_bar(cls, current: str, current_name: str, total: int, width: int, longest_name: int):
@@ -210,9 +211,10 @@ class Android_Handler:
             space = " "
 
         bar = cls.PROGRESSBAR_ASCII_COMPLETE * filled + space + cls.PROGRESSBAR_ASCII_FINISHED * (width - filled)
-            
+
         sys.stdout.write(f'\r[{bar}] {current}/{total} {percent * 100:.1f}% File: {cls.theme_color}{current_name}{cls.c_colors._reset}')
         sys.stdout.flush()
+        sys.stdout.write("\033[A")
         time.sleep(0.01)
 
     @staticmethod
@@ -225,6 +227,33 @@ class Android_Handler:
         sys.stdout.write("\033[?25h")
         sys.stdout.flush()
 
+    @classmethod
+    def copy_media(cls, temp_dir: str, media_dir: str):
+        try:
+            shutil.copy2(temp_dir, media_dir)
+        except Exception as copy_error:
+            print(copy_error)
+            raise SystemError()
+        
+    @classmethod
+    def rename_file(cls, file_path: str, file_name: str):
+        old_file_path = os.path.join(file_path, file_name)
+
+        #! get unix timestamp
+        addition = str(int(time.time())) #! convert to int first bc time() returns a float
+
+        #! create new file path
+        new_file_path = os.path.join(file_path, addition + "-" + file_name)
+
+        #! rename file
+        os.rename(old_file_path, new_file_path)
+
+        return new_file_path
+
+    @classmethod
+    def get_file_name(cls, file_path: str) -> str:
+        return os.path.basename(file_path)
+        
     @classmethod
     def run(cls) -> None:
 
@@ -262,37 +291,58 @@ class Android_Handler:
 
         #! copy medias
         copied_medias = 0
-        
-        for media in all_medias:
-            #! copy media to pc
-            destination_path = cls.create_media_destination_path(media = media)
-            copy_success_state = cls.copy_shell_item(
-                phone_file = media, 
-                destination_path = destination_path
-            )
-            cls.clear_clipboard()
+        with tempfile.TemporaryDirectory() as temp_media_dir:
+            for media_obj in all_medias:
+                #! copy media to temp path
+                media = str(media_obj.Name)
+                destination_path = cls.create_media_destination_path(media = media)
+                temp_media_path = os.path.join(temp_media_dir, media)
+                copy_success_state = cls.copy_shell_item(
+                    phone_file = media_obj, 
+                    destination_path = temp_media_path
+                )
+                cls.clear_clipboard()
 
-            #! get hash of media
-            media_hash = get_file_hash(destination_path)
+                #! get hash and filename of media
+                media_hash = get_file_hash(temp_media_path)
+                file_name = cls.get_file_name(temp_media_path)
 
-            #! add hash to db, if hash exists, delete media on pc
-            if copy_success_state:
-                if cls.db.check(media_hash):
-                    os.remove(destination_path)
-                else:
-                    cls.db.save(media_hash)
+                #! add hash and filename to db and check
+                if copy_success_state:
 
-            #! continue with progress bar
-            if copy_success_state:
-                copied_medias += 1
-            
-            cls.progress_bar(
-                total = len(all_medias),
-                current = copied_medias,
-                current_name = media,
-                width = 30,
-                longest_name = longest_media_name
-            )
+                    #! check hash
+                    if cls.db.check(cls.db.hash_column_name, media_hash):
+                        os.remove(temp_media_path)
+                    else:
+                        cls.db.save(cls.db.hash_column_name, media_hash)
+
+                        #! check filename
+                        new_media_path = None
+                        if cls.db.check(cls.db.filename_column_name, file_name):
+                            new_media_path = cls.rename_file(temp_media_dir, file_name)
+                            new_destination_path = cls.create_media_destination_path(cls.get_file_name(new_media_path))
+                        else:
+                            cls.db.save(cls.db.filename_column_name, file_name)
+
+                        #! check if it got renamed
+                        if new_media_path == None:
+                            cls.copy_media(temp_media_path, destination_path)
+                            os.remove(temp_media_path)
+                        else:
+                            cls.copy_media(new_media_path, new_destination_path)
+                            os.remove(new_media_path)
+                  
+                #! continue with progress bar
+                if copy_success_state:
+                    copied_medias += 1
+
+                cls.progress_bar(
+                    total = len(all_medias),
+                    current = copied_medias,
+                    current_name = media,
+                    width = 30,
+                    longest_name = longest_media_name
+                )
 
         #! remove folders
         if len(all_medias) == copied_medias:
@@ -317,7 +367,10 @@ class Android_Handler:
         for folder in removed_folders:
             removed_folders_string += folder + " "
 
-        print(f"{cls.c_colors.WHITE}Removed Folders: {cls.theme_color}{removed_folders_string}{cls.c_colors._reset}")
+        if removed_folders == []:
+            print(f"{cls.c_colors.WHITE}Removed Folders: {cls.theme_color}Nothing deleted{cls.c_colors._reset}")
+        else:
+            print(f"{cls.c_colors.WHITE}Removed Folders: {cls.theme_color}{removed_folders_string}{cls.c_colors._reset}")
 
         #! show CLI cursor
         Android_Handler.show_CLI_cursor()

@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 from banner import BANNER
 from colors import Colors
 from utils import Android_Handler
@@ -18,27 +18,36 @@ config_path = os.path.join(get_execution_path(), "config.json")
 config_data = load_config(config_path)
 
 #! global vars
-PC_SAVE_PATH = config_data["DCIM_transfer"]["save_path"]
-DATABASE_PATH = os.path.join(PC_SAVE_PATH, config_data["DCIM_transfer"]["database_name"])
+SAVE_PATH = config_data["DCIM_transfer"]["save_path"]
+DATABASE_PATH = os.path.join(SAVE_PATH, config_data["DCIM_transfer"]["database_name"])
+FOLDERS_TO_BACKUP = config_data["DCIM_transfer"]["folders_to_backup"]
 
+#! check if save path exists
+if not os.path.exists(SAVE_PATH):
+    print("Save path doesnt exists, check your config file and make sure the path is correct.")
+    time.sleep(10)
+    sys.exit()
+
+#! create objects
 colors = Colors()
 database = Database(DATABASE_PATH)
 
 #! start
 if __name__ == "__main__":
     
-    #! init win ansii
-    os.system("")
+    #! init win ansii and clear console
+    os.system("cls")
 
     #! print banner
     print(BANNER)
     print(colors._reset)
-
+    input()
+    sys.exit()
     #! set color class to handler
     Android_Handler.init(
         colors_obj = colors,
-        pc_save_path = PC_SAVE_PATH,
-        DCIM_folder_names = config_data["DCIM_transfer"]["folders_to_backup"],
+        SAVE_PATH = SAVE_PATH,
+        DCIM_folder_names = FOLDERS_TO_BACKUP,
         database = database
     )
 
@@ -46,3 +55,4 @@ if __name__ == "__main__":
     Android_Handler.run()
     try: database.close()
     except: pass
+    input()

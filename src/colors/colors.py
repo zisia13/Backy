@@ -25,6 +25,7 @@ class Colors:
         self.PASTELL_GREEN = self.b(144, 238, 144)
         self.PASTELL_RED = self.b(255, 114, 118)
         
+        self._theme_color = self.b(155, 220, 33)
         self._reset = self.b(255, 255, 255)
     
     @private

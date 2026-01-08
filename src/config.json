@@ -1,9 +1,9 @@
 {   
     "DCIM_transfer" : {
         "save_path" : "S:\\_GITHUB\\White\\test",
-        "database_name" : "hashes.db",
+        "database_name" : "data.db",
         "folders_to_backup" : [
-            "Screenshots"
+            "test"
         ]
     }
 }
