@@ -22,15 +22,7 @@ class Android_Handler:
 
     NOT_FOUND = "no_phone_found"
 
-    identifier_list = [
-        "Android",
-        "Samsung",
-        "S1",
-        "S2",
-        "S3",
-        "S4"
-    ]
-
+    identifier_list = []
     DCIM_FOLDER_NAMES = []
 
     def __init__(self):
@@ -38,7 +30,7 @@ class Android_Handler:
         raise SyntaxError()
 
     @classmethod
-    def init(cls, colors_obj, pc_save_path: str, database, DCIM_folder_names: List[str]):
+    def init(cls, colors_obj, pc_save_path: str, database, DCIM_folder_names: List[str], identifier_list: List[str]):
         cls.DCIM_FOLDER_NAMES = DCIM_folder_names
         cls.db = database
         cls.PC_SAVE_PATH = pc_save_path
@@ -46,6 +38,7 @@ class Android_Handler:
         cls.PROGRESSBAR_ASCII_COMPLETE = cls.c_colors.PASTELL_GREEN + "━" + cls.c_colors._reset #"█"
         cls.PROGRESSBAR_ASCII_FINISHED = cls.c_colors.PASTELL_RED + "━" + cls.c_colors._reset
         cls.theme_color = cls.c_colors._theme_color
+        cls.identifier_list = identifier_list
 
     @classmethod
     def get_pc_drives(cls) -> List[str]:

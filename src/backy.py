@@ -21,6 +21,7 @@ config_data = load_config(config_path)
 SAVE_PATH = config_data["DCIM_transfer"]["save_path"]
 DATABASE_PATH = os.path.join(SAVE_PATH, config_data["DCIM_transfer"]["database_name"])
 FOLDERS_TO_BACKUP = config_data["DCIM_transfer"]["folders_to_backup"]
+IDENTIFIER_LIST = config_data["DCIM_transfer"]["identifier_list"]
 
 #! check if save path exists
 if not os.path.exists(SAVE_PATH):
@@ -48,7 +49,8 @@ if __name__ == "__main__":
         colors_obj = colors,
         SAVE_PATH = SAVE_PATH,
         DCIM_folder_names = FOLDERS_TO_BACKUP,
-        database = database
+        database = database,
+        identifier_list = IDENTIFIER_LIST
     )
 
     #! run   

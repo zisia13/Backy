@@ -4,6 +4,14 @@
         "database_name" : "data.db",
         "folders_to_backup" : [
             "test"
+        ],
+        "identifier_list" : [
+            "Android",
+            "Samsung",
+            "S1",
+            "S2",
+            "S3",
+            "S4"
         ]
     }
 }
