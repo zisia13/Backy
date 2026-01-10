@@ -42,12 +42,11 @@ if __name__ == "__main__":
     #! print banner
     print(BANNER)
     print(colors._reset)
-    input()
-    sys.exit()
+    
     #! set color class to handler
     Android_Handler.init(
         colors_obj = colors,
-        SAVE_PATH = SAVE_PATH,
+        pc_save_path = SAVE_PATH,
         DCIM_folder_names = FOLDERS_TO_BACKUP,
         database = database,
         identifier_list = IDENTIFIER_LIST

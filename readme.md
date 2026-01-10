@@ -25,7 +25,7 @@ A lightweight backup utility designed for frequent, selective backups of specifi
 ```json
 {   
     "DCIM_transfer" : {
-        "save_path" : "S:\\_GITHUB\\White\\test",
+        "save_path" : "S:\\_GITHUB\\Backy\\test",
         "database_name" : "data.db",
         "folders_to_backup" : [
             "test"
